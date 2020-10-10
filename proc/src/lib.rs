@@ -133,7 +133,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
         #[allow(non_snake_case)]
         #vis struct #name#impl_generics #where_clause {
             #data_name: #union_name#ty_generics,
-            #vtable_name: *mut (),
+            #vtable_name: core::ptr::NonNull<()>,
         }
 
         /// Marker trait for types that can be stored in a [
@@ -170,7 +170,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
                 };
                 unsafe {
                     core::ptr::write(&mut (*slf.as_mut_ptr()).#data_name as *mut _ as *mut _, value);
-                    (*slf.as_mut_ptr()).#vtable_name = vtable;
+                    (*slf.as_mut_ptr()).#vtable_name = core::ptr::NonNull::new_unchecked(vtable);
                     slf.assume_init()
                 }
             }
@@ -181,7 +181,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
         fn #to_trait_object_name#impl_generics(x: &#name#ty_generics) -> #trait_object_name #where_clause {
             #trait_object_name {
                 data: &x.#data_name as *const _ as *mut _,
-                vtable: x.#vtable_name,
+                vtable: x.#vtable_name.as_ptr(),
             }
         }
 

@@ -16,8 +16,6 @@
 //! ```rust
 //! # use trait_union::trait_union;
 //! # use std::fmt::Display;
-//! # use std::mem;
-//! # use std::ops::Deref;
 //! #
 //! trait_union! {
 //!     /// Container can contain either an i32, a &'static str, or a bool.
@@ -230,7 +228,12 @@ mod test {
     }
 
     #[test]
-    fn fails() {
+    fn size() {
+        assert_eq!(mem::size_of::<U>(), mem::size_of::<Option<U>>());
+    }
+
+    #[test]
+    fn compile() {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/compile-fail/*.rs");
         t.pass("tests/pass/*.rs");

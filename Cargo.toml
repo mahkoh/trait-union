@@ -1,6 +1,6 @@
 [package]
 name = "trait-union"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Julian Orth <ju.orth@gmail.com>"]
 edition = "2018"
 description = "Stack-allocated trait objects"
