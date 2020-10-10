@@ -1,0 +1,9 @@
+error[E0623]: lifetime mismatch
+  --> $DIR/fail7.rs:12:10
+   |
+11 | fn f(s: &'_ str, u: &mut U<'_>) {
+   |         -------          -----
+   |         |
+   |         these two types are declared with different lifetimes...
+12 |     *u = U::new(s);
+   |          ^^^^^^^^^ ...but data from `s` flows into `u` here

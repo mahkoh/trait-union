@@ -1,0 +1,7 @@
+error[E0621]: explicit lifetime required in the type of `s`
+  --> $DIR/fail6.rs:12:13
+   |
+11 | fn f(s: &str) {
+   |         ---- help: add explicit lifetime `'static` to the type of `s`: `&'static str`
+12 |     let u = U::new(s);
+   |             ^^^^^^ lifetime `'static` required

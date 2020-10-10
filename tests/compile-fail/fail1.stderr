@@ -1,0 +1,12 @@
+error[E0478]: lifetime bound not satisfied
+ --> $DIR/fail1.rs:5:11
+  |
+5 |     union U<'a>: Debug = &'a str;
+  |           ^^^^^
+  |
+note: lifetime parameter instantiated with the lifetime `'a` as defined on the impl at 5:13
+ --> $DIR/fail1.rs:5:13
+  |
+5 |     union U<'a>: Debug = &'a str;
+  |             ^^
+  = note: but lifetime parameter must outlive the static lifetime

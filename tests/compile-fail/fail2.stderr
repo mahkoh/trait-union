@@ -1,0 +1,7 @@
+error[E0392]: parameter `'a` is never used
+ --> $DIR/fail2.rs:5:13
+  |
+5 |     union U<'a>: Debug = u8;
+  |             ^^ unused parameter
+  |
+  = help: consider removing `'a`, referring to it in a field, or using a marker such as `std::marker::PhantomData`

@@ -1,0 +1,12 @@
+error[E0277]: the trait bound `T: F` is not satisfied
+ --> $DIR/fail5.rs:6:11
+  |
+6 |     union U<T>: F where T: Copy+'static = T;
+  |           ^^^^  - required by this bound in `UVariant`
+  |           |
+  |           the trait `F` is not implemented for `T`
+  |
+help: consider further restricting this bound
+  |
+6 |     union U<T>: F where T: Copy+'static + F = T;
+  |                                         ^^^

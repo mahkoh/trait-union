@@ -1,0 +1,7 @@
+error[E0759]: `u` has lifetime `'a` but it needs to satisfy a `'static` lifetime requirement
+  --> $DIR/fail8.rs:12:34
+   |
+11 | fn f<'a>(u: &U<'a>) {
+   |             ------ this data with lifetime `'a`...
+12 |     let _: &(dyn F + 'static) = &**u;
+   |                                  ^^^ ...is captured here, requiring it to live as long as `'static`

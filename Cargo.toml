@@ -1,0 +1,20 @@
+[package]
+name = "trait-union"
+version = "0.1.0"
+authors = ["Julian Orth <ju.orth@gmail.com>"]
+edition = "2018"
+description = "Stack-allocated trait objects"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/mahkoh/trait-union"
+keywords = ["traits"]
+categories = ["no-std", "rust-patterns", "data-structures"]
+readme = "README.md"
+
+[dependencies]
+trait-union-proc = { version = "0.1", path = "./proc" }
+
+[dev-dependencies]
+trybuild = "1"
+
+[workspace]
+members = [ "proc" ]

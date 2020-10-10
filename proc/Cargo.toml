@@ -1,0 +1,15 @@
+[package]
+name = "trait-union-proc"
+version = "0.1.0"
+authors = ["Julian Orth <ju.orth@gmail.com>"]
+edition = "2018"
+description = "Internal dependency of the trait-union crate"
+license = "MIT OR Apache-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1" }
+proc-macro2 = "1"
+quote = "1"
