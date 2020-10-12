@@ -134,7 +134,7 @@ fn handle_request(request: TraitUnionRequest, copy: bool) -> TokenStream {
     for (pos, variant) in request.variants.iter().enumerate() {
         let ident = Ident::new(&format!("variant{}", pos), variant.span());
         union_fields.push(
-            quote::quote_spanned!( variant.span() => #ident: core::mem::ManuallyDrop<#variant>),
+            quote::quote_spanned!( variant.span() => #ident: ::core::mem::ManuallyDrop<#variant>),
         );
     }
     let mut variant_impls = vec![];
@@ -146,12 +146,12 @@ fn handle_request(request: TraitUnionRequest, copy: bool) -> TokenStream {
     let mut drop_impl = None;
     if !copy {
         drop_impl = Some(quote::quote! {
-            impl#impl_generics core::ops::Drop for #name#ty_generics #where_clause {
+            impl#impl_generics ::core::ops::Drop for #name#ty_generics #where_clause {
                 #[inline(always)]
                 fn drop(&mut self) {
                     unsafe {
-                        let t: &mut (dyn #trait_) = core::mem::transmute(#to_trait_object_name(self));
-                        core::ptr::drop_in_place(t);
+                        let t: &mut (dyn #trait_) = ::core::mem::transmute(#to_trait_object_name(self));
+                        ::core::ptr::drop_in_place(t);
                     }
                 }
             }
@@ -160,8 +160,8 @@ fn handle_request(request: TraitUnionRequest, copy: bool) -> TokenStream {
     let mut copy_impl = None;
     if copy {
         copy_impl = Some(quote::quote! {
-            impl#impl_generics core::marker::Copy for #union_name#ty_generics #where_clause { }
-            impl#impl_generics core::clone::Clone for #union_name#ty_generics #where_clause {
+            impl#impl_generics ::core::marker::Copy for #union_name#ty_generics #where_clause { }
+            impl#impl_generics ::core::clone::Clone for #union_name#ty_generics #where_clause {
                 fn clone(&self) -> Self {
                     *self
                 }
@@ -204,23 +204,23 @@ fn handle_request(request: TraitUnionRequest, copy: bool) -> TokenStream {
 
         #[allow(non_camel_case_types)]
         #[derive(Copy, Clone)]
-        struct #vtable_container_name(core::ptr::NonNull<()>);
-        unsafe impl core::marker::Send for #vtable_container_name { }
-        unsafe impl core::marker::Sync for #vtable_container_name { }
+        struct #vtable_container_name(::core::ptr::NonNull<()>);
+        unsafe impl ::core::marker::Send for #vtable_container_name { }
+        unsafe impl ::core::marker::Sync for #vtable_container_name { }
 
         impl#impl_generics #name#ty_generics #where_clause {
             /// Creates a new instance
             #[inline(always)]
             #vis fn new(value: impl #variant_name#ty_generics) -> Self {
-                let mut slf = core::mem::MaybeUninit::<Self>::uninit();
+                let mut slf = ::core::mem::MaybeUninit::<Self>::uninit();
                 let vtable = {
                     let trait_object: &(dyn #trait_) = &value;
-                    let trait_object: #trait_object_name = unsafe { core::mem::transmute(trait_object) };
+                    let trait_object: #trait_object_name = unsafe { ::core::mem::transmute(trait_object) };
                     trait_object.vtable
                 };
                 unsafe {
-                    core::ptr::write(&mut (*slf.as_mut_ptr()).#data_name as *mut _ as *mut _, value);
-                    (*slf.as_mut_ptr()).#vtable_name = #vtable_container_name(core::ptr::NonNull::new_unchecked(vtable));
+                    ::core::ptr::write(&mut (*slf.as_mut_ptr()).#data_name as *mut _ as *mut _, value);
+                    (*slf.as_mut_ptr()).#vtable_name = #vtable_container_name(::core::ptr::NonNull::new_unchecked(vtable));
                     slf.assume_init()
                 }
             }
@@ -235,19 +235,19 @@ fn handle_request(request: TraitUnionRequest, copy: bool) -> TokenStream {
             }
         }
 
-        impl#impl_generics core::ops::Deref for #name#ty_generics #where_clause {
+        impl#impl_generics ::core::ops::Deref for #name#ty_generics #where_clause {
             type Target = dyn #trait_;
 
             #[inline(always)]
             fn deref(&self) -> &Self::Target {
-                unsafe { core::mem::transmute(#to_trait_object_name(self)) }
+                unsafe { ::core::mem::transmute(#to_trait_object_name(self)) }
             }
         }
 
-        impl#impl_generics core::ops::DerefMut for #name#ty_generics #where_clause {
+        impl#impl_generics ::core::ops::DerefMut for #name#ty_generics #where_clause {
             #[inline(always)]
             fn deref_mut(&mut self) -> &mut Self::Target {
-                unsafe { core::mem::transmute(#to_trait_object_name(self)) }
+                unsafe { ::core::mem::transmute(#to_trait_object_name(self)) }
             }
         }
 
