@@ -1,4 +1,4 @@
-#![cfg_attr(not(test), no_std)]
+// #![cfg_attr(not(test), no_std)]
 #![cfg_attr(test, feature(untagged_unions))]
 
 //! This crate provides a macro that generates a trait-union type. That is, a trait
@@ -237,5 +237,10 @@ mod test {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/compile-fail/*.rs");
         t.pass("tests/pass/*.rs");
+    }
+
+    #[test]
+    fn assert_sync() {
+        let _: &dyn Sync = &U::new(1);
     }
 }

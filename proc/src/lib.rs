@@ -99,6 +99,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
     let variant_name = Ident::new(&format!("{}Variant", name), name.span());
     let union_name = Ident::new(&format!("{}Union", prefix), name.span());
     let trait_object_name = Ident::new(&format!("{}TraitObject", prefix), name.span());
+    let vtable_container_name = Ident::new(&format!("{}VtableContainer", prefix), name.span());
     let to_trait_object_name =
         Ident::new(&format!("{}to_trait_object", prefix), name.span());
     let mut trait_ = request.trait_;
@@ -133,7 +134,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
         #[allow(non_snake_case)]
         #vis struct #name#impl_generics #where_clause {
             #data_name: #union_name#ty_generics,
-            #vtable_name: core::ptr::NonNull<()>,
+            #vtable_name: #vtable_container_name,
         }
 
         /// Marker trait for types that can be stored in a [
@@ -158,6 +159,11 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
             #(#union_fields),*
         }
 
+        #[allow(non_camel_case_types)]
+        struct #vtable_container_name(core::ptr::NonNull<()>);
+        unsafe impl core::marker::Send for #vtable_container_name { }
+        unsafe impl core::marker::Sync for #vtable_container_name { }
+
         impl#impl_generics #name#ty_generics #where_clause {
             /// Creates a new instance
             #[inline(always)]
@@ -170,7 +176,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
                 };
                 unsafe {
                     core::ptr::write(&mut (*slf.as_mut_ptr()).#data_name as *mut _ as *mut _, value);
-                    (*slf.as_mut_ptr()).#vtable_name = core::ptr::NonNull::new_unchecked(vtable);
+                    (*slf.as_mut_ptr()).#vtable_name = #vtable_container_name(core::ptr::NonNull::new_unchecked(vtable));
                     slf.assume_init()
                 }
             }
@@ -181,7 +187,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
         fn #to_trait_object_name#impl_generics(x: &#name#ty_generics) -> #trait_object_name #where_clause {
             #trait_object_name {
                 data: &x.#data_name as *const _ as *mut _,
-                vtable: x.#vtable_name.as_ptr(),
+                vtable: x.#vtable_name.0.as_ptr(),
             }
         }
 
