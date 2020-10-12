@@ -4,7 +4,8 @@ use syn::{
     parse_macro_input,
     punctuated::Punctuated,
     spanned::Spanned,
-    Attribute, Generics, Ident, Token, Type, TypeParamBound, Visibility, WhereClause,
+    Attribute, Generics, Ident, Lifetime, Token, Type, TypeParamBound, Visibility,
+    WhereClause,
 };
 
 // https://github.com/intellij-rust/intellij-rust/issues/6236
@@ -13,10 +14,22 @@ use syn::token::Token;
 
 #[proc_macro]
 pub fn trait_union(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    trait_union_common(tokens, false)
+}
+
+#[proc_macro]
+pub fn trait_union_copy(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    trait_union_common(tokens, true)
+}
+
+fn trait_union_common(
+    tokens: proc_macro::TokenStream,
+    copy: bool,
+) -> proc_macro::TokenStream {
     let TraitUnionRequests(requests) = parse_macro_input!(tokens as TraitUnionRequests);
     let mut tokens = TokenStream::new();
     for request in requests {
-        tokens.extend(handle_request(request));
+        tokens.extend(handle_request(request, copy));
     }
     tokens.into()
 }
@@ -88,7 +101,7 @@ impl Parse for TraitUnionRequests {
     }
 }
 
-fn handle_request(request: TraitUnionRequest) -> TokenStream {
+fn handle_request(request: TraitUnionRequest, copy: bool) -> TokenStream {
     let attr = request.attr;
     let vis = request.vis;
     let name = request.ident;
@@ -99,7 +112,8 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
     let variant_name = Ident::new(&format!("{}Variant", name), name.span());
     let union_name = Ident::new(&format!("{}Union", prefix), name.span());
     let trait_object_name = Ident::new(&format!("{}TraitObject", prefix), name.span());
-    let vtable_container_name = Ident::new(&format!("{}VtableContainer", prefix), name.span());
+    let vtable_container_name =
+        Ident::new(&format!("{}VtableContainer", prefix), name.span());
     let to_trait_object_name =
         Ident::new(&format!("{}to_trait_object", prefix), name.span());
     let mut trait_ = request.trait_;
@@ -110,7 +124,7 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
         if !trait_.empty_or_trailing() {
             trait_.push_punct(syn::token::Add(trait_.span()));
         }
-        trait_.push_value(TypeParamBound::Lifetime(syn::Lifetime::new(
+        trait_.push_value(TypeParamBound::Lifetime(Lifetime::new(
             "'static",
             trait_.span(),
         )));
@@ -129,6 +143,31 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
             unsafe impl#impl_generics #variant_name#ty_generics for #variant #where_clause { }
         })
     }
+    let mut drop_impl = None;
+    if !copy {
+        drop_impl = Some(quote::quote! {
+            impl#impl_generics core::ops::Drop for #name#ty_generics #where_clause {
+                #[inline(always)]
+                fn drop(&mut self) {
+                    unsafe {
+                        let t: &mut (dyn #trait_) = core::mem::transmute(#to_trait_object_name(self));
+                        core::ptr::drop_in_place(t);
+                    }
+                }
+            }
+        });
+    }
+    let mut copy_impl = None;
+    if copy {
+        copy_impl = Some(quote::quote! {
+            impl#impl_generics core::marker::Copy for #union_name#ty_generics #where_clause { }
+            impl#impl_generics core::clone::Clone for #union_name#ty_generics #where_clause {
+                fn clone(&self) -> Self {
+                    *self
+                }
+            }
+        });
+    }
     let tokens = quote::quote! {
         #(#attr)*
         #[allow(non_snake_case)]
@@ -136,6 +175,8 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
             #data_name: #union_name#ty_generics,
             #vtable_name: #vtable_container_name,
         }
+
+        #drop_impl
 
         /// Marker trait for types that can be stored in a [
         #[doc = #name_as_str]
@@ -159,7 +200,10 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
             #(#union_fields),*
         }
 
+        #copy_impl
+
         #[allow(non_camel_case_types)]
+        #[derive(Copy, Clone)]
         struct #vtable_container_name(core::ptr::NonNull<()>);
         unsafe impl core::marker::Send for #vtable_container_name { }
         unsafe impl core::marker::Sync for #vtable_container_name { }
@@ -188,16 +232,6 @@ fn handle_request(request: TraitUnionRequest) -> TokenStream {
             #trait_object_name {
                 data: &x.#data_name as *const _ as *mut _,
                 vtable: x.#vtable_name.0.as_ptr(),
-            }
-        }
-
-        impl#impl_generics core::ops::Drop for #name#ty_generics #where_clause {
-            #[inline(always)]
-            fn drop(&mut self) {
-                unsafe {
-                    let t: &mut (dyn #trait_) = core::mem::transmute(#to_trait_object_name(self));
-                    core::ptr::drop_in_place(t);
-                }
             }
         }
 

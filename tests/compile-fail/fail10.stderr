@@ -1,0 +1,10 @@
+error[E0204]: the trait `Copy` may not be implemented for this type
+ --> $DIR/fail10.rs:5:1
+  |
+5 | / trait_union_copy! {
+6 | |     union U: std::fmt::Display = u8 | String;
+  | |                                       ------ this field does not implement `Copy`
+7 | | }
+  | |_^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

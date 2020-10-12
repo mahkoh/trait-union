@@ -1,4 +1,4 @@
-// #![cfg_attr(not(test), no_std)]
+#![cfg_attr(not(test), no_std)]
 #![cfg_attr(test, feature(untagged_unions))]
 
 //! This crate provides a macro that generates a trait-union type. That is, a trait
@@ -138,9 +138,18 @@
 /// The struct implements `Deref` and `DerefMut` with `Target = Debug+'a`.
 pub use trait_union_proc::trait_union;
 
+/// Macro that generates a trait-union type for [Copy] implementors
+///
+/// This macro is identical to [trait_union] except that
+///
+/// - all implementors must be [Copy]
+/// - the generated type is not [Drop]
+/// - `#[derive(Copy, Clone)]` can be used as an attribute
+pub use trait_union_proc::trait_union_copy;
+
 #[cfg(test)]
 mod test {
-    use super::trait_union;
+    use super::{trait_union, trait_union_copy};
     use std::{
         fmt,
         fmt::{Display, Formatter},
@@ -237,6 +246,18 @@ mod test {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/compile-fail/*.rs");
         t.pass("tests/pass/*.rs");
+    }
+
+    #[test]
+    fn copy() {
+        trait_union_copy! {
+            #[derive(Copy, Clone)]
+            union U: Display = u8 | &'static str;
+        }
+
+        let u = U::new("test");
+        let v = u;
+        assert_eq!(u.to_string(), v.to_string());
     }
 
     #[test]
