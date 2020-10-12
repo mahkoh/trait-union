@@ -16,8 +16,8 @@ non-Copy types in a trait-union. This will change
 # Example
 
 ```rust
- use trait_union::trait_union;
- use std::fmt::Display;
+use trait_union::trait_union;
+use std::fmt::Display;
 
 trait_union! {
     /// Container can contain either an i32, a &'static str, or a bool.
