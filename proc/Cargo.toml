@@ -1,6 +1,6 @@
 [package]
 name = "trait-union-proc"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Julian Orth <ju.orth@gmail.com>"]
 edition = "2018"
 description = "Internal dependency of the trait-union crate"

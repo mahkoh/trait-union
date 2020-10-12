@@ -1,6 +1,6 @@
 [package]
 name = "trait-union"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Julian Orth <ju.orth@gmail.com>"]
 edition = "2018"
 description = "Stack-allocated trait objects"
@@ -11,7 +11,7 @@ categories = ["no-std", "rust-patterns", "data-structures"]
 readme = "README.md"
 
 [dependencies]
-trait-union-proc = { version = "0.1", path = "./proc" }
+trait-union-proc = { version = "=0.1.4", path = "./proc" }
 
 [dev-dependencies]
 trybuild = "1"
