@@ -53,10 +53,6 @@ Its size is therefore similar to the size of an `enum` with one variant per impl
 Depending on the number of implementors, compile times should be significantly lower than
 with an `enum`. The run-time performance is similar to that of `Box<dyn Trait>`. 
 
-# Limitations
-
-- The generated type implements `Drop` unconditionally.
-
 ## License
 
 This project is licensed under either of
