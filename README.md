@@ -34,6 +34,29 @@ container = Container::new(true);
 assert_eq!(container.to_string(), "true");
 ```
 
+# Implementation
+
+The generated type looks roughly as follows:
+
+```rust
+struct Container {
+    data: union {
+        variant1: i32,
+        variant2: &'static str,
+        variant3: bool,
+    },
+    vtable: *mut (),
+}
+```
+
+Its size is therefore similar to the size of an `enum` with one variant per implementor.
+Depending on the number of implementors, compile times should be significantly lower than
+with an `enum`. The run-time performance is similar to that of `Box<dyn Trait>`. 
+
+# Limitations
+
+- The generated type implements `Drop` unconditionally.
+
 ## License
 
 This project is licensed under either of
