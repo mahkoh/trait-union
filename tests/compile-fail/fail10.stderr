@@ -7,4 +7,4 @@ error[E0204]: the trait `Copy` may not be implemented for this type
 7 | | }
   | |_^
   |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `trait_union_copy` (in Nightly builds, run with -Z macro-backtrace for more info)
